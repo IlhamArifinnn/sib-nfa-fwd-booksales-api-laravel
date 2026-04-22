@@ -15,9 +15,9 @@
 
     @foreach ($authors as $author)
         <ul>
-            <li>Name: {{ $author['name'] }}</li>
-            <li>{{ $author['photo'] }}</li>
-            <li>Bio: {{ $author['bio'] }}</li>
+            <li>Name: {{ $author->name }}</li>
+            <li>{{ $author->photo }}</li>
+            <li>Bio: {{ $author->bio }}</li>
         </ul>
     @endforeach
 

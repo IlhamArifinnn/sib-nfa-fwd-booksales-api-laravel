@@ -15,10 +15,11 @@
 
     @foreach ($books as $book)
         <ul>
-            <li>Title: {{ $book['title'] }}</li>
-            <li>{{ $book['description'] }}</li>
-            <li>Price: {{ $book['price'] }}</li>
-            <li>Stock: {{ $book['stock'] }}</li>
+            <li>Title: {{ $book->title }}</li>
+            <li>{{ $book->description }}</li>
+            <li>Price: {{ $book->price }}</li>
+            <li>Stock: {{ $book->stock }}</li>
+            <li>Author: {{ $book->author->name ?? '-' }}</li>
         </ul>
     @endforeach
 
