@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Genre;
 use Illuminate\Http\Request;
 
+
 class GenreController extends Controller
 {
     /**
@@ -12,10 +13,13 @@ class GenreController extends Controller
      */
     public function index()
     {
-        $data = new Genre; // membuat objek
-        $genres = $data->getGenres(); // mengambik method getGenres
+        $genres = Genre::all();
 
-        return view('genres', ['genres' => $genres]); // mengirim data genre ke view
+        return response()->json([
+            "success" => true,
+            "message" => "List of Genres",
+            'data' => $genres
+        ], 200);
     }
 
     /**
@@ -31,7 +35,18 @@ class GenreController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $genre = Genre::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Genre created successfully',
+            'data' => $genre
+        ], 201);
     }
 
     /**

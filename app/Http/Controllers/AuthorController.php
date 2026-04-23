@@ -14,7 +14,11 @@ class AuthorController extends Controller
     {
         $authors = Author::all();
 
-        return response()->json(['data' => $authors]);
+        return response()->json([
+            "success" => true,
+            "message" => "List of Authors",
+            'data' => $authors
+        ]);
     }
 
     /**
@@ -30,7 +34,25 @@ class AuthorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bio' => 'required|string',
+        ]);
+
+        // Handle file upload for photo        if ($request->hasFile('photo')) {
+        $file = $request->file('photo');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('authors'), $filename);
+        $validated['photo'] = 'authors/' . $filename;
+
+        $author = Author::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Author created successfully',
+            'data' => $author
+        ], 201);
     }
 
     /**

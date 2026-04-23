@@ -12,9 +12,13 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::with('author')->get();
+        $books = Book::with('author', 'genre')->get();
 
-        return response()->json(['data' => $books]);
+        return response()->json([
+            "success" => true,
+            "message" => "List of Books",
+            'data' => $books
+        ], 200);
     }
 
     /**
@@ -30,7 +34,31 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|integer',
+            'stock' => 'required|integer',
+            'cover_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'author_id' => 'required|exists:authors,id',
+            'genre_id' => 'required|exists:genres,id',
+        ]);
+
+        // Handle file upload for cover photo
+        if ($request->hasFile('cover_photo')) {
+            $file = $request->file('cover_photo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('books'), $filename);
+            $validated['cover_photo'] = 'books/' . $filename;
+        }
+
+        $book = Book::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Book created successfully',
+            'data' => $book
+        ], 201);
     }
 
     /**
