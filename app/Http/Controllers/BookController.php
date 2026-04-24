@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BookController extends Controller
 {
@@ -44,12 +46,12 @@ class BookController extends Controller
             'genre_id' => 'required|exists:genres,id',
         ]);
 
-        // Handle file upload for cover photo
+        // Handle file upload for cover photo to storage
         if ($request->hasFile('cover_photo')) {
             $file = $request->file('cover_photo');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('books'), $filename);
-            $validated['cover_photo'] = 'books/' . $filename;
+            $path = $file->storeAs('books', $filename, 'public');
+            $validated['cover_photo'] = $path;
         }
 
         $book = Book::create($validated);
@@ -64,9 +66,23 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Book $book)
+    public function show($id)
     {
-        //
+        try {
+            $book = Book::with('author', 'genre')->findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Book details',
+                'data' => $book
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Book not found',
+                'data' => null
+            ], 404);
+        }
     }
 
     /**
@@ -80,16 +96,77 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Book $book)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $book = Book::findOrFail($id);
+
+            $validated = $request->validate([
+                'title' => 'sometimes|required|string|max:255',
+                'description' => 'nullable|string',
+                'price' => 'sometimes|required|integer|min:0',
+                'stock' => 'sometimes|required|integer|min:0',
+                'cover_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'author_id' => 'sometimes|required|exists:authors,id',
+                'genre_id' => 'sometimes|required|exists:genres,id',
+            ]);
+
+            // Handle file upload for cover photo
+            if ($request->hasFile('cover_photo')) {
+                // Delete old cover photo if exists
+                if ($book->cover_photo && Storage::disk('public')->exists($book->cover_photo)) {
+                    Storage::disk('public')->delete($book->cover_photo);
+                }
+
+                $file = $request->file('cover_photo');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('books', $filename, 'public');
+                $validated['cover_photo'] = $path;
+            }
+
+            $book->update($validated);
+
+            // Load relationships for response
+            $book->load('author', 'genre');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Book updated successfully',
+                'data' => $book
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Book not found',
+                'data' => null
+            ], 404);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Book $book)
+    public function destroy($id)
     {
-        //
+        try {
+            $book = Book::findOrFail($id);
+
+            // Delete cover photo file if exists
+            if ($book->cover_photo && Storage::disk('public')->exists($book->cover_photo)) {
+                Storage::disk('public')->delete($book->cover_photo);
+            }
+
+            $book->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Book deleted successfully',
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Book not found',
+            ], 404);
+        }
     }
 }

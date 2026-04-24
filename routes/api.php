@@ -15,13 +15,10 @@ Route::get('/', function () {
 });
 
 // Route untuk Genres
-Route::get('/genres', [GenreController::class, 'index']);      // Read all genres
-Route::post('/genres', [GenreController::class, 'store']);     // Create genre
+Route::apiResource('genres', GenreController::class);
 
 // Route untuk Authors
-Route::get('/authors', [AuthorController::class, 'index']);    // Read all authors
-Route::post('/authors', [AuthorController::class, 'store']);   // Create author
+Route::apiResource('authors', AuthorController::class);
 
 // Route untuk Books
-Route::get('/books', [BookController::class, 'index']);        // Read all books
-Route::post('/books', [BookController::class, 'store']);       // Create book
+Route::apiResource('books', BookController::class);

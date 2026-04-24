@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Genre;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
 class GenreController extends Controller
@@ -52,9 +53,23 @@ class GenreController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Genre $genre)
+    public function show($id)
     {
-        //
+        try {
+            $genre = Genre::findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Genre details',
+                'data' => $genre
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Genre not found',
+                'data' => null
+            ], 404);
+        }
     }
 
     /**
@@ -68,16 +83,50 @@ class GenreController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Genre $genre)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $genre = Genre::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:255',
+                'description' => 'nullable|string',
+            ]);
+
+            $genre->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Genre updated successfully',
+                'data' => $genre
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Genre not found',
+                'data' => null
+            ], 404);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Genre $genre)
+    public function destroy($id)
     {
-        //
+        try {
+            $genre = Genre::findOrFail($id);
+            $genre->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Genre deleted successfully',
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Genre not found',
+            ], 404);
+        }
     }
 }
