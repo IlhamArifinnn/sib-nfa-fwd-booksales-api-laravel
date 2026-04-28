@@ -16,6 +16,14 @@ class BookController extends Controller
     {
         $books = Book::with('author', 'genre')->get();
 
+        if ($books->isEmpty()) {
+            return response()->json([
+                "success" => true,
+                "message" => "No books found",
+                'data' => []
+            ], 200);
+        }
+
         return response()->json([
             "success" => true,
             "message" => "List of Books",

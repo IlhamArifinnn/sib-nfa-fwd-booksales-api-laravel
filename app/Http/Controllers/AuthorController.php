@@ -16,6 +16,14 @@ class AuthorController extends Controller
     {
         $authors = Author::all();
 
+        if ($authors->isEmpty()) {
+            return response()->json([
+                "success" => true,
+                "message" => "No authors found",
+                'data' => []
+            ]);
+        }
+
         return response()->json([
             "success" => true,
             "message" => "List of Authors",

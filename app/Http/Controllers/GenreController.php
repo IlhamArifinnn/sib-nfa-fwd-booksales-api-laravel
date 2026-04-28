@@ -16,6 +16,14 @@ class GenreController extends Controller
     {
         $genres = Genre::all();
 
+        if ($genres->isEmpty()) {
+            return response()->json([
+                "success" => true,
+                "message" => "No genres found",
+                'data' => []
+            ], 200);
+        }
+
         return response()->json([
             "success" => true,
             "message" => "List of Genres",
